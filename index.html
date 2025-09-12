@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AudioDUPER - Smart Audio Duplicate Detection</title>
+    <style>
+        :root {
+            /* CleanMyMac-inspired color palette */
+            --primary: #007AFF;
+            --primary-dark: #0056CC;
+            --secondary: #5856D6;
+            --success: #34C759;
+            --danger: #FF3B30;
+            --warning: #FF9500;
+            
+            /* Glassmorphism backgrounds */
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-bg-strong: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            
+            /* Base colors */
+            --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-secondary: rgba(246, 248, 250, 0.8);
+            --text: #1d1d1f;
+            --text-muted: #6e6e73;
+            --text-light: rgba(255, 255, 255, 0.9);
+            
+            /* Borders and shadows */
+            --border: rgba(255, 255, 255, 0.18);
+            --shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            --shadow-hover: 0 16px 48px rgba(31, 38, 135, 0.5);
+            
+            /* Backdrop effects */
+            --backdrop-blur: blur(20px);
+            --backdrop-saturate: saturate(180%);
+        }
+
+        /* Dark mode - CleanMyMac dark theme */
+        [data-theme="dark"] {
+            --primary: #0A84FF;
+            --primary-dark: #0066CC;
+            --secondary: #5E5CE6;
+            --success: #32D74B;
+            --danger: #FF453A;
+            --warning: #FF9F0A;
+            
+            /* Dark glassmorphism */
+            --glass-bg: rgba(16, 16, 18, 0.8);
+            --glass-bg-strong: rgba(16, 16, 18, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            
+            /* Dark base colors */
+            --bg-primary: linear-gradient(135deg, #1e1e2e 0%, #2d1b3d 100%);
+            --bg-secondary: rgba(28, 28, 30, 0.8);
+            --text: #f2f2f7;
+            --text-muted: #8e8e93;
+            --text-light: rgba(242, 242, 247, 0.9);
+            
+            /* Dark borders and shadows */
+            --border: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            --shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        /* Animated background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 118, 117, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 70%, rgba(88, 86, 214, 0.2) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+            z-index: -2;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(-20px) translateY(-10px); }
+            50% { transform: translateX(20px) translateY(10px); }
+            75% { transform: translateX(-10px) translateY(20px); }
+        }
+
+        /* Floating animation for cards */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+
+        /* Subtle glow animation */
+        @keyframes glow {
+            0%, 100% { box-shadow: var(--glass-shadow); }
+            50% { box-shadow: var(--glass-shadow), 0 0 20px rgba(0, 122, 255, 0.2); }
+        }
+
+        /* Pulse animation for active elements */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            background: var(--glass-bg-strong);
+            backdrop-filter: var(--backdrop-blur) var(--backdrop-saturate);
+            -webkit-backdrop-filter: var(--backdrop-blur) var(--backdrop-saturate);
+            border-bottom: 1px solid var(--glass-border);
+            color: var(--text-light);
+            padding: 2rem;
+            position: relative;
+            box-shadow: var(--glass-shadow);
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1) 0%,
+                rgba(255, 255, 255, 0.05) 50%,
+                rgba(255, 255, 255, 0.02) 100%);
+            border-radius: inherit;
+            z-index: -1;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-text {
+            text-align: center;
+            flex: 1;
+        }
+
+        .app-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .app-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        /* Theme Toggle Switch */
+        .theme-toggle {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .theme-switch {
+            position: relative;
+            width: 60px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-switch:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .theme-switch::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 28px;
+            height: 28px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        [data-theme="dark"] .theme-switch::before {
+            transform: translateX(28px);
+            background: #374151;
+        }
+
+        .theme-icon {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .theme-icon.active {
+            opacity: 1;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: var(--backdrop-blur) var(--backdrop-saturate);
+            -webkit-backdrop-filter: var(--backdrop-blur) var(--backdrop-saturate);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--glass-shadow);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .card:nth-child(even) {
+            animation-delay: -3s;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%,
+                rgba(255, 255, 255, 0.4) 50%,
+                transparent 100%);
+            z-index: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .folder-display {
+            background: var(--light-darker);
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .folder-display.has-folder {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.05);
+            color: var(--text);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            text-decoration: none;
+            white-space: nowrap;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1) 0%,
+                rgba(255, 255, 255, 0.05) 100%);
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn:hover::before {
+            opacity: 1.5;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn:not(:disabled):hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            background: var(--glass-bg-strong);
+            color: var(--text-light);
+            box-shadow: var(--glass-shadow);
+            border-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+            background: rgba(0, 122, 255, 0.8);
+        }
+
+        .btn-secondary {
+            background: var(--glass-bg);
+            color: var(--text);
+            border-color: var(--glass-border);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            background: var(--glass-bg-strong);
+        }
+
+        .btn-success {
+            background: rgba(52, 199, 89, 0.8);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            background: var(--success);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .progress-container {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .progress-container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .progress-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 1rem 0;
+            height: 12px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                var(--primary), 
+                rgba(0, 122, 255, 0.8), 
+                var(--primary));
+            border-radius: 12px;
+            transition: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            width: 0%;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.4);
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .results-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .duplicate-group {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            box-shadow: var(--glass-shadow);
+            transition: all 0.2s ease;
+        }
+
+        .duplicate-group:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .group-header {
+            background: var(--light-darker);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .group-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .group-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .waste-badge {
+            background: var(--danger);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .file-list {
+            padding: 1rem;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: background 0.2s ease;
+        }
+
+        .file-item:hover {
+            background: var(--light-darker);
+        }
+
+        .file-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .file-checkbox {
+            margin-right: 1rem;
+            transform: scale(1.2);
+        }
+
+        .play-btn {
+            background: var(--glass-bg-strong);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-right: 1rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .play-btn:hover {
+            transform: scale(1.1);
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+        }
+
+        .file-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+
+        .file-path {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            opacity: 0.7;
+            margin-bottom: 0.5rem;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+        }
+
+        .file-info {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .file-details {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .file-path {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.85rem;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .file-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-original {
+            background: var(--success);
+            color: white;
+        }
+
+        .badge-duplicate {
+            background: var(--warning);
+            color: white;
+        }
+
+        /* Dark mode badge improvements */
+        [data-theme="dark"] .badge-original {
+            background: rgba(52, 211, 153, 0.8);
+            color: var(--text);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+        }
+
+        [data-theme="dark"] .badge-duplicate {
+            background: rgba(251, 191, 36, 0.8);
+            color: var(--text);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        /* Fix white backgrounds in dark mode */
+        [data-theme="dark"] .file-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+        }
+
+        [data-theme="dark"] .file-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .selection-controls {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .results-container {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .results-container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--success);
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .app-title {
+                font-size: 2rem;
+            }
+            
+            .results-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .file-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1 class="app-title">AudioDUPER</h1>
+                    <p class="app-subtitle">Intelligent audio duplicate detection using advanced fingerprinting</p>
+                </div>
+                <div class="theme-toggle">
+                    <span class="theme-icon">☀️</span>
+                    <button class="theme-switch" id="themeToggle" aria-label="Toggle theme"></button>
+                    <span class="theme-icon">🌙</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Controls Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Select Audio Directory</h2>
+                </div>
+                <div class="card-body">
+                    <div class="controls-grid">
+                        <div id="folderDisplay" class="folder-display">
+                            <span id="folderText">Click "Browse Folder" to select an audio directory</span>
+                        </div>
+                        <div class="button-group">
+                            <button id="selectFolder" class="btn btn-primary">
+                                📁 Browse Folder
+                            </button>
+                            <button id="startScan" class="btn btn-success" disabled>
+                                🔍 Start Scan
+                            </button>
+                            <button id="startOver" class="btn btn-secondary" style="display: none;">
+                                🔄 Start Over
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Section -->
+            <div id="progressContainer" class="card progress-container">
+                <div class="card-body">
+                    <div class="progress-header">
+                        <div class="spinner"></div>
+                        <h3>Scanning Audio Files...</h3>
+                        <button id="cancelScan" class="btn btn-danger">🛑 Stop Scan</button>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="progressBar" class="progress-bar"></div>
+                    </div>
+                    <div id="progressText" class="text-center">Preparing scan...</div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsContainer" class="results-container">
+                <!-- Stats Cards -->
+                <div class="results-stats">
+                    <div class="stat-card">
+                        <div id="totalGroups" class="stat-value">0</div>
+                        <div class="stat-label">Duplicate Groups</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="totalFiles" class="stat-value">0</div>
+                        <div class="stat-label">Duplicate Files</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="totalWaste" class="stat-value">0 MB</div>
+                        <div class="stat-label">Wasted Space</div>
+                    </div>
+                    <div class="stat-card">
+                        <div id="selectedCount" class="stat-value">0</div>
+                        <div class="stat-label">Selected for Deletion</div>
+                    </div>
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="selection-controls">
+                            <button id="selectAllDuplicates" class="btn btn-secondary">
+                                ☑️ Select All Duplicates
+                            </button>
+                            <button id="selectLowestQuality" class="btn btn-secondary">
+                                📉 Select Lowest Quality
+                            </button>
+                            <button id="clearSelection" class="btn btn-secondary">
+                                ❌ Clear Selection
+                            </button>
+                        </div>
+                        
+                        <!-- Action Buttons Section -->
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                            <div class="selection-controls">
+                                <button id="selectDestinationFolder" class="btn btn-secondary">
+                                    📁 Select Destination Folder
+                                </button>
+                                <div id="destinationDisplay" class="folder-display hidden" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                                    <span id="destinationText">No destination selected</span>
+                                </div>
+                            </div>
+                            <div class="selection-controls" style="margin-top: 1rem;">
+                                <button id="moveSelected" class="btn btn-warning" disabled>
+                                    📦 Move Selected to Folder
+                                </button>
+                                <button id="deleteSelected" class="btn btn-danger" disabled>
+                                    🗑️ Delete Selected
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Duplicate Groups -->
+                <div id="duplicateGroups"></div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="card empty-state hidden">
+                <div class="card-body">
+                    <div class="empty-icon">🎵</div>
+                    <h3>No Duplicates Found</h3>
+                    <p>Great news! Your audio collection is already optimized.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast">
+        <div id="toastMessage"></div>
+    </div>
+
+    <script>
+        class AudioDuperApp {
+            constructor() {
+                this.selectedFolder = null;
+                this.destinationFolder = null;
+                this.duplicateGroups = [];
+                this.selectedFiles = new Set();
+                this.currentAudio = null;
+                this.currentPlayingButton = null;
+                this.currentBlobURL = null;
+                this.autoStopTimer = null;
+                this.initializeEventListeners();
+            }
+
+            initializeEventListeners() {
+                document.getElementById('selectFolder').addEventListener('click', () => this.selectFolder());
+                document.getElementById('startScan').addEventListener('click', () => this.startScan());
+                document.getElementById('cancelScan').addEventListener('click', () => this.cancelScan());
+                document.getElementById('startOver').addEventListener('click', () => this.startOver());
+                document.getElementById('selectAllDuplicates').addEventListener('click', () => this.selectAllDuplicates());
+                document.getElementById('selectLowestQuality').addEventListener('click', () => this.selectLowestQuality());
+                document.getElementById('clearSelection').addEventListener('click', () => this.clearSelection());
+                document.getElementById('selectDestinationFolder').addEventListener('click', () => this.selectDestinationFolder());
+                document.getElementById('moveSelected').addEventListener('click', () => this.moveSelected());
+                document.getElementById('deleteSelected').addEventListener('click', () => this.deleteSelected());
+
+                // Handle checkbox changes with event delegation
+                document.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('file-checkbox')) {
+                        this.handleFileSelection(e.target);
+                    }
+                });
+
+                // Listen for scan progress from main process
+                window.electronAPI.onScanProgress((event, progress) => {
+                    this.updateProgress(progress);
+                });
+            }
+
+            async selectFolder() {
+                try {
+                    const folder = await window.electronAPI.selectFolder();
+                    if (folder) {
+                        this.selectedFolder = folder;
+                        const folderDisplay = document.getElementById('folderDisplay');
+                        const folderText = document.getElementById('folderText');
+                        
+                        folderText.textContent = folder;
+                        folderDisplay.classList.add('has-folder');
+                        document.getElementById('startScan').disabled = false;
+                        
+                        this.showToast('Folder selected successfully', 'success');
+                    }
+                } catch (error) {
+                    this.showToast('Failed to select folder: ' + error.message, 'error');
+                }
+            }
+
+            async startScan() {
+                if (!this.selectedFolder) return;
+
+                this.showProgress();
+                this.hideResults();
+                document.getElementById('startScan').disabled = true;
+                document.getElementById('cancelScan').disabled = false;
+
+                try {
+                    this.duplicateGroups = await window.electronAPI.scanDirectory(this.selectedFolder);
+                    this.displayResults();
+                    document.getElementById('startOver').style.display = 'inline-flex';
+                    this.showToast(`🚀 TURBO SCAN complete! Found ${this.duplicateGroups.length} duplicate groups`, 'success');
+                } catch (error) {
+                    if (error.message.includes('cancelled')) {
+                        this.showToast('⏹️ Scan cancelled by user', 'warning');
+                    } else {
+                        this.showToast(`Scan failed: ${error.message}`, 'error');
+                    }
+                } finally {
+                    this.hideProgress();
+                    document.getElementById('startScan').disabled = false;
+                    document.getElementById('cancelScan').disabled = true;
+                }
+            }
+
+            async cancelScan() {
+                try {
+                    await window.electronAPI.cancelScan();
+                    document.getElementById('cancelScan').disabled = true;
+                } catch (error) {
+                    this.showToast(`Failed to cancel scan: ${error.message}`, 'error');
+                }
+            }
+
+            startOver() {
+                // Reset all state
+                this.selectedFolder = null;
+                this.destinationFolder = null;
+                this.duplicateGroups = [];
+                this.selectedFiles = new Set();
+
+                // Stop any playing audio
+                this.stopCurrentAudio();
+
+                // Reset UI
+                document.getElementById('folderText').textContent = 'Click "Browse Folder" to select an audio directory';
+                document.getElementById('startScan').disabled = true;
+                document.getElementById('startOver').style.display = 'none';
+                
+                // Hide results and show empty state
+                this.hideResults();
+                this.hideProgress();
+                document.getElementById('emptyState').classList.remove('hidden');
+
+                this.showToast('🔄 Ready for a new scan!', 'success');
+            }
+
+            showProgress() {
+                const container = document.getElementById('progressContainer');
+                container.classList.add('show');
+                this.updateProgress({ processed: 0, total: 1, current: 'Initializing...' });
+            }
+
+            hideProgress() {
+                const container = document.getElementById('progressContainer');
+                container.classList.remove('show');
+            }
+
+            updateProgress(progress) {
+                const percentage = Math.round((progress.processed / progress.total) * 100);
+                document.getElementById('progressBar').style.width = `${percentage}%`;
+                document.getElementById('progressText').textContent = 
+                    `${progress.current} (${progress.processed}/${progress.total} - ${percentage}%)`;
+            }
+
+            showResults() {
+                document.getElementById('resultsContainer').classList.add('show');
+                document.getElementById('emptyState').classList.add('hidden');
+            }
+
+            hideResults() {
+                document.getElementById('resultsContainer').classList.remove('show');
+            }
+
+            displayResults() {
+                if (this.duplicateGroups.length === 0) {
+                    document.getElementById('emptyState').classList.remove('hidden');
+                    return;
+                }
+
+                this.updateStats();
+                this.renderDuplicateGroups();
+                this.showResults();
+            }
+
+            updateStats() {
+                const totalFiles = this.duplicateGroups.reduce((sum, group) => sum + group.duplicates.length, 0);
+                const totalWaste = this.duplicateGroups.reduce((sum, group) => sum + group.wasteSize, 0);
+
+                document.getElementById('totalGroups').textContent = this.duplicateGroups.length;
+                document.getElementById('totalFiles').textContent = totalFiles;
+                document.getElementById('totalWaste').textContent = this.formatFileSize(totalWaste);
+                document.getElementById('selectedCount').textContent = this.selectedFiles.size;
+            }
+
+            renderDuplicateGroups() {
+                const container = document.getElementById('duplicateGroups');
+                container.innerHTML = '';
+
+                this.duplicateGroups.forEach((group, groupIndex) => {
+                    const groupElement = this.createGroupElement(group, groupIndex);
+                    container.appendChild(groupElement);
+                });
+            }
+
+            createGroupElement(group, groupIndex) {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'duplicate-group';
+
+                groupDiv.innerHTML = `
+                    <div class="group-header">
+                        <div class="group-info">
+                            <span class="group-title">Group ${groupIndex + 1}</span>
+                            <span class="waste-badge">${this.formatFileSize(group.wasteSize)} wasted</span>
+                        </div>
+                    </div>
+                    <div class="file-list">
+                        ${this.createFileItem(group.original, true, groupIndex, 0)}
+                        ${group.duplicates.map((file, index) => 
+                            this.createFileItem(file, false, groupIndex, index + 1)
+                        ).join('')}
+                    </div>
+                `;
+
+                return groupDiv;
+            }
+
+            createFileItem(file, isOriginal, groupIndex, fileIndex) {
+                const uniqueId = `file_${groupIndex}_${fileIndex}`;
+                const bitrate = file.bitrate ? `${Math.round(file.bitrate / 1000)}kbps` : 'Unknown';
+                const duration = file.duration ? `${Math.round(file.duration)}s` : 'Unknown';
+                const fileName = file.path.split('/').pop();
+
+                return `
+                    <div class="file-item">
+                        <input type="checkbox" class="file-checkbox" id="${uniqueId}" 
+                               data-path="${file.path}" ${isOriginal ? 'disabled' : ''}>
+                        <button class="play-btn" id="playBtn-${uniqueId}" onclick="audioDuperApp.toggleAudio('${file.path.replace(/'/g, "\\'")}', 'playBtn-${uniqueId}')">
+                            ▶️
+                        </button>
+                        <div class="file-info">
+                            <div class="file-details">
+                                <div class="file-name" title="${file.path}">${fileName}</div>
+                                <div class="file-path" title="${file.path}">${file.path}</div>
+                                <div class="file-meta">
+                                    <span>📁 ${this.formatFileSize(file.size)}</span>
+                                    <span>🎵 ${bitrate}</span>
+                                    <span>⏱️ ${duration}</span>
+                                </div>
+                            </div>
+                            <span class="file-badge ${isOriginal ? 'badge-original' : 'badge-duplicate'}">
+                                ${isOriginal ? 'Original' : 'Duplicate'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            handleFileSelection(checkbox) {
+                const path = checkbox.dataset.path;
+                if (checkbox.checked) {
+                    this.selectedFiles.add(path);
+                } else {
+                    this.selectedFiles.delete(path);
+                }
+                this.updateStats();
+                this.updateDeleteButton();
+            }
+
+            selectAllDuplicates() {
+                document.querySelectorAll('.file-checkbox:not([disabled])').forEach(checkbox => {
+                    checkbox.checked = true;
+                    this.selectedFiles.add(checkbox.dataset.path);
+                });
+                this.updateStats();
+                this.updateDeleteButton();
+            }
+
+            selectLowestQuality() {
+                this.clearSelection();
+                this.duplicateGroups.forEach(group => {
+                    if (group.duplicates.length > 0) {
+                        const lowestQuality = group.duplicates[group.duplicates.length - 1];
+                        const checkbox = document.querySelector(`[data-path="${lowestQuality.path}"]`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                            this.selectedFiles.add(lowestQuality.path);
+                        }
+                    }
+                });
+                this.updateStats();
+                this.updateDeleteButton();
+            }
+
+            clearSelection() {
+                document.querySelectorAll('.file-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                this.selectedFiles.clear();
+                this.updateStats();
+                this.updateDeleteButton();
+            }
+
+            async selectDestinationFolder() {
+                try {
+                    const folder = await window.electronAPI.selectDestinationFolder();
+                    if (folder) {
+                        this.destinationFolder = folder;
+                        const destinationDisplay = document.getElementById('destinationDisplay');
+                        const destinationText = document.getElementById('destinationText');
+                        
+                        destinationText.textContent = folder;
+                        destinationDisplay.classList.remove('hidden');
+                        destinationDisplay.classList.add('has-folder');
+                        
+                        this.updateActionButtons();
+                        this.showToast('Destination folder selected successfully', 'success');
+                    }
+                } catch (error) {
+                    this.showToast('Failed to select destination folder: ' + error.message, 'error');
+                }
+            }
+
+            updateActionButtons() {
+                const hasSelection = this.selectedFiles.size > 0;
+                document.getElementById('deleteSelected').disabled = !hasSelection;
+                document.getElementById('moveSelected').disabled = !hasSelection || !this.destinationFolder;
+            }
+
+            updateDeleteButton() {
+                this.updateActionButtons();
+            }
+
+            async moveSelected() {
+                if (this.selectedFiles.size === 0 || !this.destinationFolder) return;
+
+                const confirmed = confirm(
+                    `📦 Move ${this.selectedFiles.size} files to:\n${this.destinationFolder}\n\nContinue?`
+                );
+                
+                if (!confirmed) return;
+
+                try {
+                    document.getElementById('moveSelected').disabled = true;
+                    const results = await window.electronAPI.moveFiles([...this.selectedFiles], this.destinationFolder);
+                    
+                    const successful = results.filter(r => r.success).length;
+                    const failed = results.filter(r => !r.success).length;
+
+                    if (failed > 0) {
+                        this.showToast(`Moved ${successful} files. ${failed} failed to move.`, 'error');
+                    } else {
+                        this.showToast(`Successfully moved ${successful} files to destination folder!`, 'success');
+                    }
+                    
+                    // Clear selection and refresh scan to show updated results
+                    this.clearSelection();
+                    setTimeout(() => this.startScan(), 1000);
+                    
+                } catch (error) {
+                    this.showToast(`Move operation failed: ${error.message}`, 'error');
+                } finally {
+                    this.updateActionButtons();
+                }
+            }
+
+            async deleteSelected() {
+                if (this.selectedFiles.size === 0) return;
+
+                const confirmed = confirm(
+                    `⚠️ WARNING: This will permanently delete ${this.selectedFiles.size} files.\n\n` +
+                    `This action cannot be undone. Are you sure you want to continue?`
+                );
+                
+                if (!confirmed) return;
+
+                try {
+                    document.getElementById('deleteSelected').disabled = true;
+                    const results = await window.electronAPI.deleteFiles([...this.selectedFiles]);
+                    
+                    const successful = results.filter(r => r.success).length;
+                    const failed = results.filter(r => !r.success).length;
+
+                    if (failed > 0) {
+                        this.showToast(`Deleted ${successful} files. ${failed} failed to delete.`, 'error');
+                    } else {
+                        this.showToast(`Successfully deleted ${successful} files!`, 'success');
+                    }
+                    
+                    // Clear selection and refresh scan to show updated results
+                    this.clearSelection();
+                    setTimeout(() => this.startScan(), 1000);
+                    
+                } catch (error) {
+                    this.showToast(`Delete operation failed: ${error.message}`, 'error');
+                } finally {
+                    this.updateActionButtons();
+                }
+            }
+
+            formatFileSize(bytes) {
+                if (bytes === 0) return '0 B';
+                const k = 1024;
+                const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+            }
+
+            toggleAudio(filePath, buttonId) {
+                const button = document.getElementById(buttonId);
+                
+                // If this file is currently playing, stop it
+                if (this.currentAudio && this.currentPlayingButton === buttonId) {
+                    this.stopCurrentAudio();
+                    return;
+                }
+                
+                // Stop any other currently playing audio
+                this.stopCurrentAudio();
+                
+                // Start playing this file
+                this.playAudio(filePath, buttonId);
+            }
+
+            stopCurrentAudio() {
+                if (this.currentAudio) {
+                    this.currentAudio.pause();
+                    this.currentAudio = null;
+                    
+                    if (this.currentPlayingButton) {
+                        const button = document.getElementById(this.currentPlayingButton);
+                        if (button) {
+                            button.innerHTML = '▶️';
+                            button.style.background = '';
+                        }
+                        this.currentPlayingButton = null;
+                    }
+                    
+                    if (this.autoStopTimer) {
+                        clearTimeout(this.autoStopTimer);
+                        this.autoStopTimer = null;
+                    }
+                    
+                    if (this.currentBlobURL) {
+                        URL.revokeObjectURL(this.currentBlobURL);
+                        this.currentBlobURL = null;
+                    }
+                }
+            }
+
+            async playAudio(filePath, buttonId) {
+                const button = document.getElementById(buttonId);
+                
+                try {
+                    // First try the blob URL approach for better M4A support
+                    const success = await this.playAudioViaBlob(filePath, buttonId);
+                    if (!success) {
+                        // Fallback to direct file URL
+                        await this.playAudioViaFileURL(filePath, buttonId);
+                    }
+                } catch (error) {
+                    this.showToast(`Error playing audio: ${error.message}`, 'error');
+                    if (button) button.innerHTML = '▶️';
+                }
+            }
+
+            async playAudioViaBlob(filePath, buttonId) {
+                try {
+                    const button = document.getElementById(buttonId);
+                    
+                    // Read file as arraybuffer for better format support
+                    const fs = require('fs').promises;
+                    const buffer = await fs.readFile(filePath);
+                    const blob = new Blob([buffer], { 
+                        type: this.getAudioMimeType(filePath) 
+                    });
+                    
+                    this.currentBlobURL = URL.createObjectURL(blob);
+                    this.currentAudio = new Audio(this.currentBlobURL);
+                    this.currentAudio.volume = 0.7;
+                    this.currentPlayingButton = buttonId;
+                    
+                    // Update button to stop state
+                    if (button) {
+                        button.innerHTML = '⏹️';
+                        button.style.background = 'var(--primary)';
+                    }
+                    
+                    // Set up event listeners
+                    this.currentAudio.onended = () => {
+                        this.stopCurrentAudio();
+                    };
+                    
+                    this.currentAudio.onerror = () => {
+                        throw new Error('Audio playback failed');
+                    };
+                    
+                    await this.currentAudio.play();
+                    this.showToast(`🎵 Playing preview...`, 'success');
+                    
+                    // Auto-stop after 10 seconds
+                    this.autoStopTimer = setTimeout(() => {
+                        this.stopCurrentAudio();
+                    }, 10000);
+                    
+                    return true;
+                    
+                } catch (error) {
+                    console.error('Blob playback failed:', error);
+                    return false;
+                }
+            }
+
+            async playAudioViaFileURL(filePath, buttonId) {
+                try {
+                    const button = document.getElementById(buttonId);
+                    
+                    // Create audio element with file URL
+                    const encodedPath = encodeURI(filePath).replace(/\\/g, '/');
+                    this.currentAudio = new Audio(`file:///${encodedPath}`);
+                    this.currentAudio.volume = 0.7;
+                    this.currentPlayingButton = buttonId;
+                    
+                    // Update button to stop state
+                    if (button) {
+                        button.innerHTML = '⏹️';
+                        button.style.background = 'var(--primary)';
+                    }
+                    
+                    // Set up event listeners
+                    this.currentAudio.onended = () => {
+                        this.stopCurrentAudio();
+                    };
+                    
+                    this.currentAudio.onerror = () => {
+                        throw new Error('Cannot load audio file');
+                    };
+                    
+                    await this.currentAudio.play();
+                    this.showToast(`🎵 Playing preview...`, 'success');
+                    
+                    // Auto-stop after 10 seconds
+                    this.autoStopTimer = setTimeout(() => {
+                        this.stopCurrentAudio();
+                    }, 10000);
+                    
+                } catch (error) {
+                    throw new Error(`Cannot play audio file: ${error.message}`);
+                }
+            }
+
+            getAudioMimeType(filePath) {
+                const ext = filePath.toLowerCase().split('.').pop();
+                const mimeTypes = {
+                    'mp3': 'audio/mpeg',
+                    'wav': 'audio/wav',
+                    'wave': 'audio/wav',
+                    'm4a': 'audio/mp4',
+                    'aac': 'audio/aac',
+                    'ogg': 'audio/ogg',
+                    'flac': 'audio/flac',
+                    'webm': 'audio/webm'
+                };
+                return mimeTypes[ext] || 'audio/mpeg';
+            }
+
+            showToast(message, type = 'success') {
+                const toast = document.getElementById('toast');
+                const toastMessage = document.getElementById('toastMessage');
+                
+                toastMessage.textContent = message;
+                toast.className = `toast ${type}`;
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 4000);
+            }
+        }
+
+        // Initialize the app
+        // Theme functionality
+        function initializeTheme() {
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcons = document.querySelectorAll('.theme-icon');
+            
+            // Check for saved theme preference or default to 'light' mode
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            
+            // Update icon states
+            updateThemeIcons(currentTheme);
+            
+            function updateThemeIcons(theme) {
+                themeIcons.forEach((icon, index) => {
+                    if (theme === 'light') {
+                        icon.classList.toggle('active', index === 0); // Sun icon active
+                    } else {
+                        icon.classList.toggle('active', index === 1); // Moon icon active
+                    }
+                });
+            }
+            
+            // Theme toggle functionality
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcons(newTheme);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
+            window.audioDuperApp = new AudioDuperApp();
+        });
+    </script>
+</body>
+</html>
