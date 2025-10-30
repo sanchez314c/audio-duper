@@ -1,29 +1,50 @@
-# Dependencies
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-.pnpm-debug.log*
+# Directories
+/archive/
+/node_modules/
+/dist/
+/build/
+/release/
+/out/
+/coverage/
+/.nyc_output/
+/tmp/
+/temp/
+/build-temp/
 
-# Build outputs
-dist/
-build/
-out/
+# Files
+.DS_Store
 *.log
-
-# Electron specific
-electron-builder.yml
-dist_electron/
-.electron-vue
-
-# Development
-*.local
+*.pid
+*.seed
+*.pid.lock
+.lock-wscript
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Build artifacts
+*.tgz
+*.tar.gz
+*.zip
+*.dmg
+*.pkg
+*.msi
+*.exe
+*.deb
+*.rpm
+*.snap
+*.AppImage
+
+# Dependencies
+node_modules/
+jspm_packages/
+bower_components/
 
 # IDE
 .vscode/
@@ -32,29 +53,107 @@ dist_electron/
 *.swo
 *~
 
-# Debug
-npm-debug.log*
-yarn-debug.log*
-pnpm-debug.log*
-
-# Testing
-coverage/
-.nyc_output
-
-# TypeScript
-*.tsbuildinfo
-
-# OS files
-.DS_Store
+# OS
 Thumbs.db
+ehthumbs.db
 Desktop.ini
 
-# Temporary files
-*.tmp
-*.temp
-.cache/
+# Logs
+logs
+*.log
 
-# AudioDUPER specific
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release
+
+# Dependency directories
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+.env.test
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local configuration
+config/local.*
+
+# AudioDUPER specific - Audio files (should not be committed)
 *.wav
 *.mp3
 *.flac
@@ -65,3 +164,14 @@ Desktop.ini
 *.wma
 audio_fingerprints/
 duplicate_reports/
+
+# Application aliases (macOS specific)
+*.app alias
+*.app alias copy
+
+# Backup files
+*.backup.*
+*.bak
+
+# Pre-trash moved files
+/AI-Pre-Trash/

@@ -43,9 +43,10 @@ print_header() {
     echo ""
 }
 
-# Get the script directory
+# Get the script directory and project root
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$SCRIPT_DIR"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
 
 print_header "🔍 AUDIODUPER BLOAT ANALYSIS TOOL"
 
