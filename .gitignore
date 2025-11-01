@@ -175,5 +175,13 @@ duplicate_reports/
 
 # Pre-trash moved files
 /AI-Pre-Trash/venv/
+
+# Python virtual environments
+venv/
+ENV/
+env/
+__pycache__/
+
+# Archive
 archive/
 dist/
