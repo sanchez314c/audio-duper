@@ -1,233 +1,242 @@
-# 🛠️ AudioDUPER Development Guide
+# Development Guide
 
-This comprehensive guide covers everything you need to know about developing and maintaining AudioDUPER.
+This comprehensive guide covers all aspects of AudioDUPER development, from setup to deployment. It's designed for developers who want to contribute to or extend the AudioDUPER application.
 
-## 📋 Table of Contents
+## 🛠️ Development Environment Setup
 
-- [Prerequisites](#prerequisites)
-- [Development Environment Setup](#development-environment-setup)
-- [Project Structure](#project-structure)
-- [Build System](#build-system)
-- [Testing](#testing)
-- [Debugging](#debugging)
-- [Code Style & Conventions](#code-style--conventions)
-- [Development Workflow](#development-workflow)
-- [Performance Optimization](#performance-optimization)
-- [Architecture Overview](#architecture-overview)
-- [Troubleshooting](#troubleshooting)
+### Prerequisites
 
-## 🚀 Prerequisites
+#### Required Software
 
-### Required Software
-
-- **Node.js** 16+ (recommend 18 LTS)
+- **Node.js** 16+ (LTS version recommended)
 - **npm** 8+ or **yarn** 1.22+
-- **Git** 2.20+
+- **Git** 2.30+
+- **Electron** 28+ (installed via npm)
 
-### Platform-Specific Dependencies
+#### Platform-Specific Requirements
 
-#### macOS
-```bash
-# Install Xcode Command Line Tools
-xcode-select --install
+**macOS**
 
-# Install chromaprint via Homebrew
-brew install chromaprint
+- Xcode Command Line Tools
+- macOS 10.15+ (Catalina or later)
+- Apple Developer account for distribution
 
-# Optional: Install wine for Windows builds
-brew install --cask wine-stable
-```
+**Windows**
 
-#### Windows
-- [Visual Studio Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022)
-- [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/)
-- [chromaprint binaries](https://acoustid.org/chromaprint)
+- Visual Studio Build Tools 2019+
+- Windows 10/11
+- Windows SDK
 
-#### Linux
-```bash
-# Ubuntu/Debian
-sudo apt update
-sudo apt install build-essential libchromaprint-tools
+**Linux**
 
-# Fedora
-sudo dnf install @development-tools chromaprint-tools
+- Build-essential tools
+- libasound2-dev
+- libgtk-3-dev
+- libgconf-2-4
 
-# Arch Linux
-sudo pacman -S base-devel chromaprint
-```
-
-## 🏗️ Development Environment Setup
-
-### 1. Clone and Setup
+### Quick Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/audiodupe/audiodupe.git
-cd audiodupe
+# Clone repository
+git clone https://github.com/your-username/audio-duper.git
+cd audio-duper
 
 # Install dependencies
 npm install
 
-# Run in development mode
+# Run development mode
 npm run dev
-```
-
-### 2. Environment Configuration
-
-Create a `.env.local` file for development settings:
-
-```env
-# Development flags
-ELECTRON_IS_DEV=1
-NODE_ENV=development
-
-# Debug options
-DEBUG=*            # Enable all debug logs
-DEBUG=audio:*      # Enable only audio-related logs
-
-# Performance monitoring
-ELECTRON_ENABLE_LOGGING=1
-ELECTRON_ENABLE_STACK_DUMPING=1
-```
-
-### 3. IDE Configuration
-
-#### VS Code Setup
-
-Install recommended extensions from `.vscode/extensions.json`:
-
-```bash
-code --install-extension ms-vscode.vscode-eslint
-code --install-extension esbenp.prettier-vscode
-code --install-extension ms-vscode.vscode-electron
-```
-
-Configure VS Code settings:
-
-```json
-{
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "eslint.workingDirectories": ["src"],
-  "files.exclude": {
-    "**/node_modules": true,
-    "**/dist": true,
-    "**/build-temp": true
-  }
-}
-```
-
-## 📁 Project Structure
-
-```
-AudioDUPER/
-├── 📁 src/                     # All source code
-│   ├── main.js                 # Main Electron process
-│   ├── preload.js              # Secure preload script
-│   ├── index.html              # Main UI
-│   ├── assets/                 # Static assets
-│   │   ├── icon.png
-│   │   └── icon.icns
-│   ├── components/             # UI components (future)
-│   ├── services/               # Business logic (future)
-│   ├── utils/                  # Utility functions (future)
-│   └── styles/                 # CSS/styling (future)
-├── 📁 scripts/                 # Build and automation
-│   ├── build-compile-dist.sh   # Enhanced build script
-│   ├── compile-build-dist-comprehensive.sh
-│   ├── bloat-check.sh          # Dependency analysis
-│   └── temp-cleanup.sh         # System cleanup
-├── 📁 docs/                    # Documentation
-│   ├── DEVELOPMENT.md          # This file
-│   ├── API_REFERENCE.md        # API documentation
-│   ├── ARCHITECTURE.md         # System architecture
-│   └── DEPLOYMENT.md           # Deployment guide
-├── 📁 build-resources/         # Build assets
-│   ├── icons/                  # Application icons
-│   └── entitlements.mac.plist  # macOS permissions
-├── 📁 tests/                   # Test files
-│   ├── unit/                   # Unit tests
-│   └── integration/            # Integration tests
-├── 📁 .github/                 # GitHub configuration
-│   ├── workflows/              # CI/CD pipelines
-│   └── PULL_REQUEST_TEMPLATE.md
-├── 📄 package.json             # Dependencies and scripts
-├── 📄 README.md                # User documentation
-├── 📄 LICENSE                  # License information
-└── 📄 .gitignore               # Git ignore rules
-```
-
-## 🔧 Build System
-
-### Development Commands
-
-```bash
-# Start in development mode with hot reload
-npm run dev
-
-# Start normally
-npm start
 
 # Run tests
 npm test
 
-# Run linting
-npm run lint
-
-# Format code
-npm run format
+# Build application
+npm run build
 ```
 
-### Build Commands
+## 🏗️ Project Architecture
+
+### Directory Structure
+
+```
+AudioDUPER/
+├── src/                    # Source code
+│   ├── main.js            # Main Electron process
+│   ├── preload.js         # Security bridge
+│   ├── index.html         # Main UI
+│   └── assets/           # Static resources
+├── scripts/               # Build and utility scripts
+├── docs/                 # Documentation
+├── build-resources/       # Build assets
+├── tests/                # Test files
+└── dist/                 # Build output
+```
+
+### Core Components
+
+#### Main Process (src/main.js)
+
+- Application lifecycle management
+- Window creation and management
+- File system operations
+- Audio processing coordination
+- IPC communication handling
+
+#### Renderer Process (src/index.html)
+
+- User interface rendering
+- User interaction handling
+- Progress display and feedback
+- Error presentation
+
+#### Preload Script (src/preload.js)
+
+- Security boundary between main and renderer
+- Safe API exposure to renderer
+- Input validation and sanitization
+- Context bridge implementation
+
+### Data Flow
+
+```mermaid
+graph TD
+    A[User Input] --> B[Renderer Process]
+    B --> C[Preload Script]
+    C --> D[Main Process]
+    D --> E[File System]
+    D --> F[Audio Processing]
+    F --> G[Chromaprint/fpcalc]
+    G --> H[Fingerprint Data]
+    H --> I[Duplicate Detection]
+    I --> J[Results Display]
+    J --> B
+```
+
+## 🔧 Development Workflow
+
+### Daily Development
+
+#### Starting Development
 
 ```bash
-# Build for current platform
-npm run build
+# Start with hot reload
+npm run dev
 
-# Build for specific platforms
-npm run build:mac
-npm run build:win
-npm run build:linux
+# Start with debugging
+npm run dev:debug
 
-# Create distributables
-npm run dist
-npm run dist:mac
-npm run dist:win
-npm run dist:linux
-
-# Build all platforms
-npm run dist:all
-
-# Comprehensive build with all variants
-npm run dist:maximum
-
-# Custom build with options
-./scripts/build-compile-dist.sh --parallel --skip-tests
+# Start with verbose logging
+DEBUG=* npm start
 ```
 
-### Build Scripts Overview
+#### Making Changes
 
-- `build-compile-dist.sh`: Enhanced build script with options
-- `compile-build-dist-comprehensive.sh`: Full multi-platform build
-- `bloat-check.sh`: Analyze dependency sizes
-- `temp-cleanup.sh`: Clean temporary files
+1. **Create Feature Branch**
+
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make Changes**
+   - Edit source files in `src/`
+   - Update tests in `tests/`
+   - Update documentation if needed
+
+3. **Test Changes**
+
+   ```bash
+   npm test
+   npm run lint
+   npm run build
+   ```
+
+4. **Commit Changes**
+   ```bash
+   git add .
+   git commit -m "feat: add your feature description"
+   git push origin feature/your-feature-name
+   ```
+
+### Code Standards
+
+#### JavaScript Guidelines
+
+- Use modern ES6+ features
+- Implement proper error handling
+- Use async/await for asynchronous operations
+- Follow ESLint configuration
+- Add JSDoc comments for functions
+
+#### Example Code Structure
+
+```javascript
+/**
+ * Processes audio files and generates fingerprints
+ * @param {string[]} filePaths - Array of file paths to process
+ * @param {Object} options - Processing options
+ * @returns {Promise<Object[]>} Array of processed file data
+ */
+async function processAudioFiles(filePaths, options = {}) {
+  const results = [];
+
+  for (const filePath of filePaths) {
+    try {
+      const metadata = await getAudioMetadata(filePath);
+      const fingerprint = await generateFingerprint(filePath);
+
+      results.push({
+        path: filePath,
+        metadata,
+        fingerprint,
+        processedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error(`Failed to process ${filePath}:`, error);
+      results.push({
+        path: filePath,
+        error: error.message,
+        processedAt: new Date().toISOString(),
+      });
+    }
+  }
+
+  return results;
+}
+```
 
 ## 🧪 Testing
 
 ### Test Structure
 
+#### Unit Tests
+
+```javascript
+// tests/unit/audio.test.js
+describe('Audio Processing', () => {
+  test('should extract metadata from MP3 file', async () => {
+    const testFile = 'tests/fixtures/sample.mp3';
+    const metadata = await getAudioMetadata(testFile);
+
+    expect(metadata).toHaveProperty('title');
+    expect(metadata).toHaveProperty('artist');
+    expect(metadata).toHaveProperty('duration');
+  });
+});
 ```
-tests/
-├── unit/                       # Unit tests
-│   ├── main.test.js           # Main process tests
-│   ├── preload.test.js        # Preload script tests
-│   └── utils/                 # Utility function tests
-├── integration/               # Integration tests
-│   ├── file-operations.test.js
-│   └── audio-processing.test.js
-└── fixtures/                  # Test data
-    ├── audio-samples/
-    └── test-configs/
+
+#### Integration Tests
+
+```javascript
+// tests/integration/file-ops.test.js
+describe('File Operations', () => {
+  test('should scan directory for audio files', async () => {
+    const testDir = 'tests/fixtures/audio-files';
+    const files = await scanForAudioFiles(testDir);
+
+    expect(files.length).toBeGreaterThan(0);
+    expect(files.every(file => isAudioFile(file))).toBe(true);
+  });
+});
 ```
 
 ### Running Tests
@@ -236,356 +245,622 @@ tests/
 # Run all tests
 npm test
 
-# Run specific test file
-npm test -- tests/unit/main.test.js
-
 # Run tests with coverage
 npm run test:coverage
 
-# Watch mode for development
+# Run specific test file
+npm test -- audio.test.js
+
+# Run tests in watch mode
 npm run test:watch
+
+# Run tests with verbose output
+npm test -- --verbose
 ```
 
-### Writing Tests
+### Test Coverage
+
+Target coverage levels:
+
+- **Statements**: 90%+
+- **Branches**: 85%+
+- **Functions**: 90%+
+- **Lines**: 90%+
+
+## 🔌 Audio Processing
+
+### Supported Formats
+
+| Format  | Extension  | Priority | Notes              |
+| ------- | ---------- | -------- | ------------------ |
+| MP3     | .mp3       | High     | Most common format |
+| FLAC    | .flac      | High     | Lossless quality   |
+| WAV     | .wav       | Medium   | Uncompressed       |
+| M4A/AAC | .m4a, .aac | Medium   | Apple format       |
+| OGG     | .ogg       | Medium   | Open source        |
+| Opus    | .opus      | Low      | Modern format      |
+| WMA     | .wma       | Low      | Windows format     |
+
+### Fingerprint Generation
+
+#### Using fpcalc
 
 ```javascript
-// Example unit test
-const assert = require('assert');
+const { exec } = require('child_process');
+const util = require('util');
+const execPromise = util.promisify(exec);
 
-describe('AudioDUPER Main Process', () => {
-  it('should initialize correctly', () => {
-    // Test main process initialization
-  });
+async function generateFingerprint(filePath) {
+  try {
+    const { stdout } = await execPromise(`fpcalc -json "${filePath}"`);
+    const result = JSON.parse(stdout);
+    return result.fingerprint;
+  } catch (error) {
+    throw new Error(`Failed to generate fingerprint: ${error.message}`);
+  }
+}
+```
 
-  it('should handle file operations', () => {
-    // Test file handling logic
-  });
+#### Quality Assessment
+
+```javascript
+function assessQuality(metadata) {
+  let score = 0;
+
+  // Bitrate scoring
+  if (metadata.bitrate) {
+    if (metadata.bitrate >= 320) score += 4;
+    else if (metadata.bitrate >= 256) score += 3;
+    else if (metadata.bitrate >= 192) score += 2;
+    else if (metadata.bitrate >= 128) score += 1;
+  }
+
+  // Format preference
+  const formatScores = {
+    flac: 5,
+    wav: 4,
+    mp3: 3,
+    m4a: 2,
+    ogg: 1,
+  };
+  score += formatScores[metadata.format?.toLowerCase()] || 0;
+
+  return score;
+}
+```
+
+## 🎨 User Interface Development
+
+### UI Components
+
+#### Main Window Structure
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>AudioDUPER</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="toolbar">
+        <!-- File selection and controls -->
+      </header>
+
+      <main class="content">
+        <section id="file-selection">
+          <!-- Directory selection interface -->
+        </section>
+
+        <section id="progress">
+          <!-- Progress indicators -->
+        </section>
+
+        <section id="results">
+          <!-- Duplicate results display -->
+        </section>
+      </main>
+
+      <footer class="status-bar">
+        <!-- Status information -->
+      </footer>
+    </div>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>
+```
+
+#### CSS Architecture
+
+```css
+/* styles.css - CSS custom properties for theming */
+:root {
+  --primary-color: #007acc;
+  --secondary-color: #28a745;
+  --danger-color: #dc3545;
+  --background-color: #1e1e1e;
+  --text-color: #ffffff;
+  --border-color: #444444;
+}
+
+/* Dark theme implementation */
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Component styles */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: var(--background-color);
+  border-bottom: 1px solid var(--border-color);
+}
+```
+
+### IPC Communication
+
+#### Main to Renderer
+
+```javascript
+// In main.js
+mainWindow.webContents.send('progress-update', {
+  current: processedCount,
+  total: totalCount,
+  message: `Processing ${fileName}...`,
 });
+
+// In renderer.js
+ipcRenderer.on('progress-update', (event, data) => {
+  updateProgressBar(data.current, data.total);
+  updateStatusMessage(data.message);
+});
+```
+
+#### Renderer to Main
+
+```javascript
+// In preload.js
+contextBridge.exposeInMainWorld('electronAPI', {
+  selectDirectory: () => ipcRenderer.invoke('select-directory'),
+  scanFiles: dirPath => ipcRenderer.invoke('scan-files', dirPath),
+  deleteFiles: filePaths => ipcRenderer.invoke('delete-files', filePaths),
+});
+
+// In renderer.js
+const files = await window.electronAPI.scanFiles(directoryPath);
+```
+
+## 🔒 Security Considerations
+
+### Input Validation
+
+#### File Path Validation
+
+```javascript
+function validateFilePath(userPath) {
+  // Prevent directory traversal
+  if (userPath.includes('..')) {
+    throw new Error('Invalid file path');
+  }
+
+  // Resolve to absolute path
+  const resolvedPath = path.resolve(userPath);
+
+  // Ensure within allowed directories
+  if (!resolvedPath.startsWith(allowedBasePath)) {
+    throw new Error('Access denied');
+  }
+
+  return resolvedPath;
+}
+```
+
+#### File Type Validation
+
+```javascript
+function isAudioFile(filePath) {
+  const audioExtensions = [
+    '.mp3',
+    '.flac',
+    '.wav',
+    '.m4a',
+    '.aac',
+    '.ogg',
+    '.opus',
+    '.wma',
+  ];
+
+  const ext = path.extname(filePath).toLowerCase();
+  return audioExtensions.includes(ext);
+}
+```
+
+### Secure IPC
+
+#### Preload Script Security
+
+```javascript
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('electronAPI', {
+  // Only expose safe, validated operations
+  selectDirectory: () => ipcRenderer.invoke('select-directory'),
+
+  // Validate inputs before sending
+  scanFiles: dirPath => {
+    if (typeof dirPath !== 'string' || !dirPath.trim()) {
+      throw new Error('Invalid directory path');
+    }
+    return ipcRenderer.invoke('scan-files', dirPath);
+  },
+});
+```
+
+## 📦 Build System
+
+### Build Configuration
+
+#### package.json Build Scripts
+
+```json
+{
+  "scripts": {
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux",
+    "dist:all": "electron-builder -mwl",
+    "dist:current": "electron-builder --publish=never"
+  }
+}
+```
+
+#### Build Configuration
+
+```json
+{
+  "build": {
+    "appId": "com.audiodedupe.app",
+    "productName": "AudioDUPER",
+    "files": [
+      "src/main.js",
+      "src/preload.js",
+      "src/index.html",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build-resources"
+    },
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ]
+    }
+  }
+}
+```
+
+### Build Scripts
+
+#### Enhanced Build Script
+
+```bash
+#!/bin/bash
+# scripts/build-compile-dist.sh
+
+set -e
+
+echo "🚀 Starting AudioDUPER build process..."
+
+# Clean previous builds
+echo "🧹 Cleaning previous builds..."
+rm -rf dist/
+rm -rf build/
+
+# Install dependencies
+echo "📦 Installing dependencies..."
+npm ci
+
+# Run tests
+echo "🧪 Running tests..."
+npm test
+
+# Build application
+echo "🔨 Building application..."
+npm run build
+
+# Create distributables
+echo "📦 Creating distributables..."
+npm run dist:current
+
+echo "✅ Build completed successfully!"
 ```
 
 ## 🐛 Debugging
 
-### Electron Debugging
+### Main Process Debugging
 
-#### Main Process Debugging
-
-```bash
-# Start with Node.js inspector
-npm run dev -- --inspect=9229
-
-# Connect Chrome DevTools
-# Navigate to chrome://inspect and click "Open dedicated DevTools"
-```
-
-#### Renderer Process Debugging
+#### Chrome DevTools
 
 ```javascript
 // In main.js
 mainWindow.webContents.openDevTools();
 
-// Or conditionally for development
-if (process.env.ELECTRON_IS_DEV) {
+// Or conditionally
+if (process.env.NODE_ENV === 'development') {
   mainWindow.webContents.openDevTools();
 }
 ```
 
-### Debugging Tools
+#### VS Code Debugging
 
-1. **Chrome DevTools**: For renderer process debugging
-2. **Node.js Inspector**: For main process debugging
-3. **VS Code Debugger**: Integrated debugging experience
-
-### Common Debugging Scenarios
-
-```javascript
-// Logging with debug module
-const debug = require('debug')('audio:main');
-debug('Starting application...');
-
-// Performance monitoring
-console.time('audio-processing');
-// ... audio processing code ...
-console.timeEnd('audio-processing');
-
-// Memory usage tracking
-setInterval(() => {
-  const usage = process.memoryUsage();
-  console.log('Memory:', usage);
-}, 5000);
-```
-
-## 📝 Code Style & Conventions
-
-### JavaScript Conventions
-
-- Use ES6+ features when appropriate
-- Prefer `const` over `let` when possible
-- Use async/await instead of callbacks
-- Follow JSDoc documentation standards
-
-```javascript
-/**
- * Processes audio files to find duplicates
- * @param {string[]} filePaths - Array of file paths to process
- * @param {Object} options - Processing options
- * @returns {Promise<Object[]>} Array of duplicate groups
- */
-async function findDuplicates(filePaths, options = {}) {
-  // Implementation
+```json
+// .vscode/launch.json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Main Process",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/main.js",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "console": "integratedTerminal"
+    }
+  ]
 }
 ```
 
-### File Naming
+### Renderer Process Debugging
 
-- Use `kebab-case` for file names
-- Use `PascalCase` for classes/components
-- Use `camelCase` for variables and functions
+#### Remote Debugging
 
-### Error Handling
+```bash
+# Start with remote debugging
+npm run dev:debug
+
+# Connect Chrome DevTools
+# Navigate to chrome://inspect
+# Click "inspect" for the target process
+```
+
+### Common Issues
+
+#### Memory Leaks
 
 ```javascript
-// Proper error handling
+// Proper cleanup
+function cleanup() {
+  if (fileWatcher) {
+    fileWatcher.close();
+  }
+  if (processingTimer) {
+    clearInterval(processingTimer);
+  }
+}
+
+// Handle app exit
+app.on('before-quit', cleanup);
+```
+
+#### File Handle Leaks
+
+```javascript
+// Always close file handles
 async function processFile(filePath) {
+  let fileHandle;
   try {
-    const result = await audioProcessor.analyze(filePath);
-    return result;
-  } catch (error) {
-    console.error(`Failed to process file ${filePath}:`, error);
-    throw new Error(`Audio processing failed: ${error.message}`);
+    fileHandle = await fs.open(filePath, 'r');
+    // Process file
+  } finally {
+    if (fileHandle) {
+      await fileHandle.close();
+    }
   }
 }
 ```
 
-## 🔄 Development Workflow
-
-### 1. Feature Development
-
-```bash
-# Create feature branch
-git checkout -b feature/audio-enhancement
-
-# Make changes
-# ... implement feature ...
-
-# Run tests and linting
-npm test
-npm run lint
-
-# Build and test
-npm run build
-
-# Commit and push
-git add .
-git commit -m "feat: add audio enhancement feature"
-git push origin feature/audio-enhancement
-```
-
-### 2. Code Review Process
-
-1. Create pull request with descriptive title
-2. Fill out PR template completely
-3. Ensure CI passes all checks
-4. Request review from team members
-5. Address feedback promptly
-6. Update documentation as needed
-
-### 3. Release Process
-
-```bash
-# Update version
-npm version patch  # or minor/major
-
-# Create comprehensive build
-npm run dist:maximum
-
-# Generate changelog
-npm run changelog
-
-# Create release
-git push origin main --tags
-```
-
-## ⚡ Performance Optimization
+## 📊 Performance Optimization
 
 ### Memory Management
 
-```javascript
-// Clean up resources when window closes
-mainWindow.on('closed', () => {
-  // Dereference window object
-  mainWindow = null;
+#### Streaming Large Files
 
-  // Clear any caches
-  audioCache.clear();
+```javascript
+const fs = require('fs');
+const stream = fs.createReadStream(largeFile);
+
+stream.on('data', chunk => {
+  // Process chunk
 });
 
-// Use object pooling for frequent allocations
-class AudioBufferPool {
-  constructor(size = 10) {
-    this.pool = [];
-    for (let i = 0; i < size; i++) {
-      this.pool.push(new AudioBuffer());
-    }
-  }
-
-  acquire() {
-    return this.pool.pop() || new AudioBuffer();
-  }
-
-  release(buffer) {
-    if (this.pool.length < 10) {
-      this.pool.push(buffer);
-    }
-  }
-}
+stream.on('end', () => {
+  // File processing complete
+});
 ```
 
-### CPU Optimization
+#### Worker Threads
 
 ```javascript
-// Use Worker threads for heavy processing
-const { Worker } = require('worker_threads');
+const { Worker, isMainThread, parentPort } = require('worker_threads');
 
-function processInWorker(data) {
-  return new Promise((resolve, reject) => {
-    const worker = new Worker('./audio-worker.js', { workerData: data });
-    worker.on('message', resolve);
-    worker.on('error', reject);
+if (isMainThread) {
+  // Main thread
+  const worker = new Worker(__filename);
+  worker.postMessage({ filePath: 'large-audio.mp3' });
+} else {
+  // Worker thread
+  parentPort.on('message', async ({ filePath }) => {
+    const result = await processAudioFile(filePath);
+    parentPort.postMessage(result);
   });
 }
 ```
 
-### Disk I/O Optimization
+### Processing Optimization
+
+#### Batch Processing
 
 ```javascript
-// Stream large files instead of loading all into memory
-const fs = require('fs');
-const stream = fs.createReadStream(largeFile);
+async function processBatch(files, batchSize = 10) {
+  const results = [];
 
-stream.on('data', (chunk) => {
-  // Process chunk incrementally
-});
+  for (let i = 0; i < files.length; i += batchSize) {
+    const batch = files.slice(i, i + batchSize);
+    const batchResults = await Promise.all(
+      batch.map(file => processFile(file))
+    );
+    results.push(...batchResults);
+
+    // Report progress
+    reportProgress(i + batchSize, files.length);
+  }
+
+  return results;
+}
 ```
 
-## 🏛️ Architecture Overview
+#### Caching Results
 
-### Main Process (main.js)
+```javascript
+const cache = new Map();
 
-- Application lifecycle management
-- Window management
-- System integration
-- File system operations
-- Audio processing coordination
+async function getCachedFingerprint(filePath) {
+  const stats = await fs.stat(filePath);
+  const cacheKey = `${filePath}:${stats.mtime.getTime()}`;
 
-### Renderer Process (index.html)
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey);
+  }
 
-- User interface
-- DOM manipulation
-- User input handling
-- Visual feedback
+  const fingerprint = await generateFingerprint(filePath);
+  cache.set(cacheKey, fingerprint);
 
-### Preload Script (preload.js)
-
-- Secure context bridge
-- API exposure to renderer
-- Security sandbox
-
-### Data Flow
-
-```
-User Input → Renderer → IPC → Main Process → Audio Processing → Results → UI Update
+  return fingerprint;
+}
 ```
 
-## 🔧 Troubleshooting
+## 🚀 Deployment
 
-### Common Issues
+### Pre-Deployment Checklist
 
-#### "electron command not found"
-```bash
-# Install dependencies
-npm install
+- [ ] All tests passing
+- [ ] Code coverage targets met
+- [ ] Security scan clean
+- [ ] Documentation updated
+- [ ] Version number updated
+- [ ] CHANGELOG.md updated
+- [ ] Build tested on all platforms
 
-# Or install electron globally (not recommended)
-npm install -g electron
-```
-
-#### "Module not found" errors
-```bash
-# Clean install
-rm -rf node_modules package-lock.json
-npm install
-```
-
-#### Build failures
-```bash
-# Clear electron cache
-rm -rf ~/Library/Caches/electron
-
-# Clean build artifacts
-npm run clean
-
-# Rebuild
-npm run build
-```
-
-#### Performance issues
-```bash
-# Check memory usage
-npm run debug:memory
-
-# Profile CPU usage
-npm run debug:profile
-```
-
-### Debug Commands
+### Release Process
 
 ```bash
-# Verbose logging
-DEBUG=* npm start
+# 1. Update version
+npm version patch  # or minor/major
 
-# Memory debugging
-node --inspect src/main.js
+# 2. Update changelog
+# Edit CHANGELOG.md
 
-# Performance profiling
-npm run build -- --profile
+# 3. Create release
+npm run dist:all
+
+# 4. Upload to GitHub Releases
+gh release create v1.2.3 dist/* --title "Release v1.2.3"
+
+# 5. Deploy to package managers (if applicable)
+npm publish
 ```
 
-## 📚 Additional Resources
+### Automated Deployment
+
+#### GitHub Actions
+
+```yaml
+# .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-${{ matrix.os }}
+          path: dist/
+```
+
+## 📚 Resources
+
+### Documentation
 
 - [Electron Documentation](https://www.electronjs.org/docs)
 - [Node.js Documentation](https://nodejs.org/docs/)
-- [Chromaprint API](https://acoustid.org/chromaprint)
-- [electron-builder Guide](https://electron.build)
+- [Chromaprint Documentation](https://acoustid.org/chromaprint)
+- [fpcalc Manual](https://acoustid.org/fpcalc)
 
-## 🤝 Contributing
+### Tools and Libraries
 
-Please read [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed contribution guidelines.
+- **Electron Builder**: Application packaging
+- **Jest**: Testing framework
+- **ESLint**: Code linting
+- **Prettier**: Code formatting
+- **music-metadata**: Audio metadata extraction
 
-### Development Commands Reference
+### Community
 
-```bash
-# Development
-npm run dev              # Start with debugging
-npm start               # Start normally
-npm run lint            # Run linter
-npm run test            # Run tests
-npm run test:watch      # Watch mode testing
-
-# Building
-npm run build           # Build for current platform
-npm run build:all       # Build all platforms
-npm run dist            # Create distributables
-npm run dist:maximum    # Build all variants
-
-# Utilities
-npm run bloat-check     # Analyze dependencies
-npm run temp-clean      # Clean temp files
-npm run clean           # Clean build artifacts
-npm run clean:deep      # Deep clean including node_modules
-```
+- [Electron Community](https://www.electronjs.org/community)
+- [GitHub Discussions](https://github.com/electron/electron/discussions)
+- [Stack Overflow](https://stackoverflow.com/questions/tagged/electron)
 
 ---
 
-**Happy coding! 🎵**
-
-For questions or support, please open an issue or discussion on GitHub.
+This development guide provides comprehensive information for AudioDUPER development. For specific questions or issues, refer to the project documentation or create an issue on GitHub.

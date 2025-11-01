@@ -1378,44 +1378,40 @@
             async playAudioViaBlob(filePath, buttonId) {
                 try {
                     const button = document.getElementById(buttonId);
-                    
-                    // Read file as arraybuffer for better format support
-                    const fs = require('fs').promises;
-                    const buffer = await fs.readFile(filePath);
-                    const blob = new Blob([buffer], { 
-                        type: this.getAudioMimeType(filePath) 
-                    });
-                    
-                    this.currentBlobURL = URL.createObjectURL(blob);
+
+                    // Use secure API to get audio data
+                    const audioData = await window.electronAPI.playAudioFile(filePath);
+
+                    this.currentBlobURL = audioData.data;
                     this.currentAudio = new Audio(this.currentBlobURL);
                     this.currentAudio.volume = 0.7;
                     this.currentPlayingButton = buttonId;
-                    
+
                     // Update button to stop state
                     if (button) {
                         button.innerHTML = '⏹️';
                         button.style.background = 'var(--primary)';
                     }
-                    
+
                     // Set up event listeners
                     this.currentAudio.onended = () => {
                         this.stopCurrentAudio();
                     };
-                    
+
                     this.currentAudio.onerror = () => {
                         throw new Error('Audio playback failed');
                     };
-                    
+
                     await this.currentAudio.play();
                     this.showToast(`🎵 Playing preview...`, 'success');
-                    
+
                     // Auto-stop after 10 seconds
                     this.autoStopTimer = setTimeout(() => {
                         this.stopCurrentAudio();
                     }, 10000);
-                    
+
                     return true;
-                    
+
                 } catch (error) {
                     console.error('Blob playback failed:', error);
                     return false;

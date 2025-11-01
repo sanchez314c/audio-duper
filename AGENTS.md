@@ -7,6 +7,7 @@ This guide provides specific instructions for AI assistants (like Claude) workin
 **AudioDUPER** is a cross-platform Electron application that identifies duplicate audio files using Chromaprint fingerprinting technology. It's written primarily in JavaScript with Node.js backend functionality.
 
 ### Core Technologies
+
 - **Electron** 28+ - Cross-platform desktop framework
 - **Node.js** 16+ - Backend runtime
 - **Chromaprint** - Audio fingerprinting library
@@ -14,6 +15,7 @@ This guide provides specific instructions for AI assistants (like Claude) workin
 - **music-metadata** - Audio metadata extraction
 
 ### Application Purpose
+
 - Scan directories for audio files
 - Generate acoustic fingerprints for each file
 - Identify duplicates based on audio content (not just metadata)
@@ -43,6 +45,7 @@ AudioDUPER/
 ## 🔧 Development Commands
 
 ### Essential Commands (Use These)
+
 ```bash
 # Start development
 npm run dev                 # Start with debugging enabled
@@ -65,6 +68,7 @@ npm run clean               # Clean build artifacts
 ```
 
 ### Advanced Build Commands
+
 ```bash
 # Enhanced build script with options
 ./scripts/build-compile-dist.sh --help
@@ -77,18 +81,21 @@ npm run clean               # Clean build artifacts
 ## 🚨 Critical Development Rules
 
 ### 1. File Structure Guidelines
+
 - **NEVER** modify files in `archive/` - these are deprecated
 - **ALWAYS** place new source code in `src/`
 - **USE** `scripts/` for build and utility scripts
 - **DOCUMENT** new features in `docs/`
 
 ### 2. Package.json Updates
+
 - **UPDATE** file paths when adding new source files
 - **MAINTAIN** semantic versioning
 - **KEEP** scripts section organized and consistent
 - **ENSURE** main entry point points to `src/main.js`
 
 ### 3. Build System Integration
+
 - **TEST** build scripts after modifications
 - **MAINTAIN** cross-platform compatibility
 - **USE** existing build infrastructure
@@ -97,6 +104,7 @@ npm run clean               # Clean build artifacts
 ## 🏗️ Architecture Patterns
 
 ### Main Process (src/main.js)
+
 ```javascript
 // Primary responsibilities:
 - Application lifecycle
@@ -113,6 +121,7 @@ npm run clean               # Clean build artifacts
 ```
 
 ### Preload Script (src/preload.js)
+
 ```javascript
 // Security boundary:
 - Expose safe APIs to renderer
@@ -122,6 +131,7 @@ npm run clean               # Clean build artifacts
 ```
 
 ### Renderer Process (src/index.html)
+
 ```javascript
 // UI responsibilities:
 - User interface
@@ -165,6 +175,7 @@ npm run clean               # Clean build artifacts
    - Test application: `npm run dev`
 
 ### File Backup Protocol (MANDATORY)
+
 ```bash
 # BEFORE editing ANY file:
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
@@ -181,6 +192,7 @@ fi
 ## 🎵 Audio Processing Guidelines
 
 ### Supported Formats
+
 - **MP3** (.mp3) - Primary format
 - **FLAC** (.flac) - Lossless support
 - **WAV** (.wav) - Uncompressed
@@ -190,6 +202,7 @@ fi
 - **WMA** (.wma) - Windows format
 
 ### Quality Ranking Algorithm
+
 ```javascript
 // File quality priority (higher is better):
 1. Bitrate (lossless > high bitrate > low bitrate)
@@ -199,26 +212,29 @@ fi
 ```
 
 ### Error Handling Patterns
+
 ```javascript
 // Always implement proper error handling:
 try {
-    const fingerprint = await generateFingerprint(filePath);
-    return fingerprint;
+  const fingerprint = await generateFingerprint(filePath);
+  return fingerprint;
 } catch (error) {
-    console.error(`Failed to process ${filePath}:`, error);
-    // Return null or appropriate fallback
-    return null;
+  console.error(`Failed to process ${filePath}:`, error);
+  // Return null or appropriate fallback
+  return null;
 }
 ```
 
 ## 📦 Build System Requirements
 
 ### Essential Build Targets
+
 - **macOS**: DMG installer, ZIP archive, APP bundle
 - **Windows**: EXE installer, MSI, portable version
 - **Linux**: AppImage, DEB, RPM packages
 
 ### Build Script Standards
+
 - **COLOR OUTPUT**: Use colored terminal output
 - **PROGRESS INDICATORS**: Show build progress
 - **ERROR HANDLING**: Proper error messages and cleanup
@@ -226,6 +242,7 @@ try {
 - **TEMP CLEANUP**: Automatic cleanup of build artifacts
 
 ### Package.json Build Configuration
+
 ```json
 "build": {
     "appId": "com.audiodedupe.app",
@@ -246,12 +263,14 @@ try {
 ## 🧪 Testing Standards
 
 ### When Adding Tests:
+
 1. **Unit Tests**: Test individual functions
 2. **Integration Tests**: Test component interactions
 3. **End-to-End Tests**: Test complete workflows
 4. **Performance Tests**: Test with large file sets
 
 ### Test File Organization
+
 ```
 tests/
 ├── unit/                   # Unit tests
@@ -263,12 +282,13 @@ tests/
 │   └── ui.test.js         # UI interaction tests
 └── fixtures/              # Test data
     ├── samples/           # Sample audio files
-    └── configs/           # Test configurations
+    └── configs/          # Test configurations
 ```
 
 ## 🔒 Security Considerations
 
 ### Critical Security Rules:
+
 1. **NEVER** expose Node.js APIs directly to renderer
 2. **ALWAYS** validate user inputs in preload script
 3. **USE** contextBridge for secure renderer communication
@@ -276,19 +296,21 @@ tests/
 5. **VALIDATE** audio files before processing
 
 ### File Security Patterns
+
 ```javascript
 // In preload script - secure file path validation
-const validatePath = (userPath) => {
-    // Prevent directory traversal
-    if (userPath.includes('..')) return false;
-    // Ensure path is within allowed directories
-    return path.resolve(userPath).startsWith(allowedBasePath);
+const validatePath = userPath => {
+  // Prevent directory traversal
+  if (userPath.includes('..')) return false;
+  // Ensure path is within allowed directories
+  return path.resolve(userPath).startsWith(allowedBasePath);
 };
 ```
 
 ## 🎨 UI/UX Guidelines
 
 ### Design Principles:
+
 - **Dark Theme**: Primary interface theme
 - **Progress Indicators**: Show progress for long operations
 - **Clear Feedback**: Immediate response to user actions
@@ -296,31 +318,33 @@ const validatePath = (userPath) => {
 - **Responsive Design**: Work on different screen sizes
 
 ### Standard UI Patterns:
+
 ```javascript
 // Progress indicator
 ipcRenderer.send('show-progress', {
-    message: 'Processing audio files...',
-    current: 45,
-    total: 100
+  message: 'Processing audio files...',
+  current: 45,
+  total: 100,
 });
 
 // Error display
 ipcRenderer.send('show-error', {
-    title: 'Processing Failed',
-    message: 'Could not read audio file: song.mp3'
+  title: 'Processing Failed',
+  message: 'Could not read audio file: song.mp3',
 });
 ```
 
 ## 📝 Documentation Standards
 
 ### Required Documentation:
+
 1. **README.md**: User-facing documentation
 2. **DEVELOPMENT.md**: Development setup and guide
-3. **CLAUDE.md**: This file - AI assistant guidance
+3. **API docs**: For any APIs exposed
 4. **CHANGELOG.md**: Version history and changes
-5. **API docs**: For any APIs exposed
 
 ### Documentation Style:
+
 - **Clear Headings**: Use consistent heading structure
 - **Code Examples**: Provide working code examples
 - **Command Examples**: Show exact commands to run
@@ -329,12 +353,14 @@ ipcRenderer.send('show-error', {
 ## 🚀 Performance Optimization
 
 ### Memory Management:
+
 - **CLEANUP**: Remove file watchers and timers on exit
 - **STREAMING**: Use streams for large file processing
 - **CACHING**: Cache results appropriately
 - **WORKERS**: Use worker threads for CPU-intensive tasks
 
 ### File Processing:
+
 - **BATCHING**: Process files in manageable batches
 - **PARALLEL**: Use controlled parallelism
 - **PROGRESS**: Report progress during long operations
@@ -343,18 +369,21 @@ ipcRenderer.send('show-error', {
 ## 🔧 Common Development Tasks
 
 ### Adding New Audio Format Support:
+
 1. Update format list in documentation
 2. Add format validation in preload script
 3. Test with sample files
 4. Update build configuration if needed
 
 ### Updating Build Process:
+
 1. Test current build first
 2. Update build scripts
 3. Test on all target platforms
 4. Update documentation
 
 ### Adding New Dependencies:
+
 1. Add to package.json
 2. Run `npm install`
 3. Update build configuration if needed
@@ -364,6 +393,7 @@ ipcRenderer.send('show-error', {
 ## ⚠️ Common Pitfalls to Avoid
 
 ### ❌ Don't Do:
+
 - Modify files in `archive/` directory
 - Forget to update package.json paths
 - Skip testing build process
@@ -373,6 +403,7 @@ ipcRenderer.send('show-error', {
 - Skip documentation updates
 
 ### ✅ Do:
+
 - Always backup files before editing
 - Test build commands after changes
 - Use secure IPC patterns
@@ -384,6 +415,7 @@ ipcRenderer.send('show-error', {
 ## 🆘 Getting Help
 
 ### When Stuck:
+
 1. **Check Logs**: Look for error messages in console
 2. **Review Documentation**: Check relevant docs files
 3. **Test Incrementally**: Isolate the problem
@@ -391,6 +423,7 @@ ipcRenderer.send('show-error', {
 5. **Document Issues**: Create GitHub issues if needed
 
 ### Debug Commands:
+
 ```bash
 # Start with debugging
 npm run dev
