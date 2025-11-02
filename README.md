@@ -11,7 +11,7 @@
 
 ## 📸 Main Interface
 
-![AudioDUPER Interface](build_resources/screenshots/audio-duper-interface.jpg)
+![AudioDUPER Interface](build_resources/screenshots/audio-duper-interface-new.jpg)
 
 > The Ultimate Audio Duplicate Finder - Clean Your Music Collection with Confidence
 
