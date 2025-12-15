@@ -1,0 +1,204 @@
+# Directories
+/archive/
+/node_modules/
+/dist/
+/build/
+/release/
+/out/
+/coverage/
+/.nyc_output/
+/tmp/
+/temp/
+/build-temp/
+/test-results/
+
+# Files
+.DS_Store
+._*
+*.log
+*.pid
+*.seed
+*.pid.lock
+.lock-wscript
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Build artifacts
+*.tgz
+*.tar.gz
+*.zip
+*.dmg
+*.pkg
+*.msi
+*.exe
+*.deb
+*.rpm
+*.snap
+*.AppImage
+
+# Dependencies
+node_modules/
+jspm_packages/
+bower_components/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+logs
+*.log
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release
+
+# Dependency directories
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+.env.test
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local configuration
+config/local.*
+
+# AudioDUPER specific - Audio files (should not be committed)
+*.wav
+*.mp3
+*.flac
+*.m4a
+*.aac
+*.ogg
+*.opus
+*.wma
+audio_fingerprints/
+duplicate_reports/
+
+# Application aliases (macOS specific)
+*.app alias
+*.app alias copy
+
+# Backup files
+*.backup.*
+*.bak
+
+# Pre-trash moved files
+/AI-Pre-Trash/venv/
+
+# Python virtual environments
+venv/
+ENV/
+env/
+__pycache__/
+
+# Legacy versions
+legacy/
+
+# Archive
+archive/
+dist/
+
+# Electron
+dist_electron/
+
+# Temporary files
+*.tmp
+
+# Claude
+.claude/
+
+# Serena
+.serena/
